@@ -1,6 +1,6 @@
-
 class Game
   attr_reader :word
+
 def self.start
   puts 'Welcome to Hangman game!'
   puts 'Would you like to start new game? (Press 1)'
@@ -16,9 +16,18 @@ def self.start
   end
 end
 
-def initialize_word
- @word = randomizer
- puts @word
+def get_input
+  puts 'Type your guess!'
+  input = gets.chomp
+  while !input.each_char.all?{|char| ('a'..'z').include?(char)} || input.length != 1
+   if input.length != 1
+   puts 'Input should be only one character!'
+   else 
+    puts 'Input should be only alphabetical!'
+  end
+  input = gets.chomp
+end
+input
 end
 
 
@@ -38,6 +47,17 @@ def randomizer
   word
 end
 
+def initialize_word
+ @word = randomizer
+ play
+end
+
+def play
+  input = get_input
+  guess_demonstrate = '_____'
+  p "input is #{input}"
+  
+end
 
 end
 
