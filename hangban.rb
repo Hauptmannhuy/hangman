@@ -39,7 +39,7 @@ class Game
       random_index = rand(lines.length)
       word = lines[random_index].chomp
     end
-    while word.length != 5
+    while word.length < 5 && word.length > 12
       random_index = rand(lines.length)
       word = lines[random_index].chomp
     end
@@ -48,14 +48,39 @@ class Game
 
   def initialize_word
     @word = randomizer
+    puts @word
     play
   end
 
   def play
-    input = get_input
-    guess_demonstrate = '_____'
-    p "input is #{input}"
+    attempts = 10
+    guess_demonstrate = String.new('_')*word.length
+    incorrect_guesses = ''
+    word = @word
+    while attempts != 0 do
+      input = get_input
+      puts "input is #{input}"
+      word.split('').each_with_index do |char,index|
+        if input == char
+          word[index] = '+'
+          guess_demonstrate[index] = input
+          break
+        elsif input != char && char != word[-1]
+          next
+        elsif word[index] == word[-1] && !word.include?(input) 
+          !incorrect_guesses.include?(input) ? incorrect_guesses << input : nil
+          attempts-=1
+          break
+      end
+    end
+    puts "Inccorect attempts remaining #{attempts}"
+    puts "Incorrect guesses: #{incorrect_guesses}"
+    puts "#{word}"
+    puts "#{guess_demonstrate}"
   end
+end
+
+
 end
 
 Game.start
