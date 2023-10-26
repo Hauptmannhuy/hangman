@@ -1,3 +1,5 @@
+require 'colorize'
+
 class Game
   attr_reader :word
 
@@ -55,7 +57,7 @@ class Game
   def play
     attempts = 10
     guess_demonstrate = String.new('_')*word.length
-    incorrect_guesses = ''
+    guesses = ''
     word = @word
     while attempts != 0 do
       input = get_input
@@ -64,22 +66,33 @@ class Game
         if input == char
           word[index] = '+'
           guess_demonstrate[index] = input
+          !guesses.include?(input) ? guesses << input.green : nil
           break
         elsif input != char && char != word[-1]
           next
         elsif word[index] == word[-1] && !word.include?(input) 
-          !incorrect_guesses.include?(input) ? incorrect_guesses << input : nil
+          !guesses.include?(input) && ? guesses << input.red : nil
           attempts-=1
           break
       end
     end
-    puts "Inccorect attempts remaining #{attempts}"
-    puts "Incorrect guesses: #{incorrect_guesses}"
+    puts "Inccorect attempts remain: #{attempts}"
+    puts "Your guesses: #{guesses}"
     puts "#{word}"
     puts "#{guess_demonstrate}"
+    if check_win(word)
+      puts 'You win!'
+      break
+    end
   end
+  if !check_win(word)
+    puts 'You lost!'
+end
 end
 
+def check_win(word)
+  word.split('').all?{|el| el == '+'}
+end
 
 end
 
