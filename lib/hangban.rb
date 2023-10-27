@@ -8,9 +8,10 @@ class Game
     @guess_demonstrate = nil
     @attempts = nil
     @guesses = nil
+    @original_word = nil
   end
 
-  def start 
+  def start
     puts 'Welcome to Hangman game!'
     puts 'Would you like to start new game? (Press 1)'
     puts 'Would you like to load save game? (Press 2)'
@@ -19,17 +20,21 @@ class Game
       puts 'Invalid input!'
       input = gets.chomp
     end
-    input == '1' ? self.initialize_word : self.load_game
+    input == '1' ? initialize_word : load_game
   end
 
   def get_guess
     puts 'Type your guess!'
     input = gets.chomp
-   input == 'save' ? input : (until input.match?(/[a-z]/) && input.length == 1
-     puts 'Input should be one-character and alphabetical!'
-      input = gets.chomp
-    end)
-    
+    if input == 'save'
+      input
+    else
+      (until input.match?(/[a-z]/) && input.length == 1
+         puts 'Input should be one-character and alphabetical!'
+         input = gets.chomp
+       end)
+    end
+
     input
   end
 
@@ -52,9 +57,9 @@ class Game
   def initialize_word
     @attempts = 10
     @word = randomizer
-    @guess_demonstrate = String.new('_')*@word.length
+    @guess_demonstrate = String.new('_') * @word.length
     @guesses = ''
-    puts @word
+    @original_word = @word
     play
   end
 
@@ -62,50 +67,49 @@ class Game
     puts "Incorrect guess remains: #{@attempts}"
     puts "Your guesses: #{@guesses}"
     puts "Your progress: #{@guess_demonstrate}"
-    
-    while @attempts != 0 do
+
+    while @attempts != 0
       input = get_guess
       if input == 'save'
-        self.save_game
+        save_game
         break
       else
         input
       end
       puts "input is #{input}"
-      word.split('').each_with_index do |char,index|
-      if input == char
+      word.split('').each_with_index do |char, index|
+        if input == char
           word[index] = '+'
           @guess_demonstrate[index] = input
           !@guesses.include?(input) ? @guesses << input.green : nil
           break
         elsif input != char && char != word[-1]
           next
-        elsif word[index] == word[-1] && !word.include?(input) 
+        elsif word[index] == word[-1] && !word.include?(input)
           !@guesses.include?(input) ? @guesses << input.red : nil
-          @attempts-=1
+          @attempts -= 1
           break
+        end
+      end
+      puts "Incorrect guess remains: #{@attempts}"
+      puts "Your guesses: #{@guesses}"
+      puts "Your progress: #{@guess_demonstrate}"
+      if check_win(@word)
+        puts 'You win!'
+        break
       end
     end
-    puts "Incorrect guess remains: #{@attempts}"
-    puts "Your guesses: #{@guesses}"
-    puts "Your progress: #{@guess_demonstrate}"
-    if check_win(@word)
-      puts 'You win!'
-      break
-    end
+    puts 'You lost!' if check_loose(@word)
+    game_restart
   end
-  if check_loose(@word)
-    puts 'You lost!'
-end
-  game_restart
-end
 
   def check_win(word)
-    word.split('').all?{|el| el == '+'} 
+    word.split('').all? { |el| el == '+' }
   end
 
   def check_loose(word)
-    !word.split('').all?{|el| el == '+'} && word != 'save'
+    !word.split('').all? { |el| el == '+' } && word != 'save'
+    puts "The word was #{@original_word}"
   end
 
   def game_restart
@@ -121,31 +125,30 @@ end
     game_file = File.new("../saved_games/#{input}", 'w')
     game_file = File.open("../saved_games/#{input}", 'w')
     game_file.write(serialize)
+    game_file.close
     puts 'Game saved!'
     game_restart
-end
+  end
 
   def load_game
-    show_files = Dir.children("../saved_games").each{|file| puts file}
+    show_files = Dir.children('../saved_games').each { |file| puts file }
     puts 'Select one of the listed saves'
     input = gets.chomp
     until show_files.include?(input)
       puts "This save game doesn't exist!"
       input = gets.chomp
     end
-   game_file = File.open("../saved_games/#{input}")
-   deserialized = Marshal.load(game_file)
+    game_file = File.open("../saved_games/#{input}")
+    deserialized = Marshal.load(game_file)
+    game_file.close
     @word = deserialized.word
     @guess_demonstrate = deserialized.guess_demonstrate
     @attempts = deserialized.attempts
     @guesses = deserialized.guesses
     play
-
   end
 end
 
-game = Game.new()
+game = Game.new
 
 game.start
-
-
