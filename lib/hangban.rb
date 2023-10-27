@@ -145,6 +145,7 @@ class Game
     @guess_demonstrate = deserialized.guess_demonstrate
     @attempts = deserialized.attempts
     @guesses = deserialized.guesses
+    @original_word = deserialized.word
     play
   end
 end
