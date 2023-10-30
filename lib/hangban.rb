@@ -1,5 +1,4 @@
 require 'colorize'
-require 'yaml'
 class Game
   attr_accessor :word, :guess_demonstrate, :attempts, :guesses
 
@@ -29,12 +28,11 @@ class Game
     if input == 'save'
       input
     else
-      (until input.match?(/[a-z]/) && input.length == 1
-         puts 'Input should be one-character and alphabetical!'
+      (until input.match?(/[a-z]/) && input.length == 1 && !@guesses.include?(input)
+         puts 'Input should be one-character and alphabetical neither contain already guessed characters!'
          input = gets.chomp
        end)
     end
-
     input
   end
 
@@ -59,7 +57,6 @@ class Game
     @word = randomizer
     @guess_demonstrate = String.new('_') * @word.length
     @guesses = ''
-    @original_word = @word
     play
   end
 
@@ -67,8 +64,9 @@ class Game
     puts "Incorrect guess remains: #{@attempts}"
     puts "Your guesses: #{@guesses}"
     puts "Your progress: #{@guess_demonstrate}"
-
+    puts @word
     while @attempts != 0
+      is_guessed = false
       input = get_guess
       if input == 'save'
         save_game
@@ -79,13 +77,12 @@ class Game
       puts "input is #{input}"
       word.split('').each_with_index do |char, index|
         if input == char
-          word[index] = '+'
+          is_guessed = true
           @guess_demonstrate[index] = input
           !@guesses.include?(input) ? @guesses << input.green : nil
-          break
         elsif input != char && char != word[-1]
           next
-        elsif word[index] == word[-1] && !word.include?(input)
+        elsif word[index] == word[-1] && !word.include?(input) && is_guessed == false
           !@guesses.include?(input) ? @guesses << input.red : nil
           @attempts -= 1
           break
@@ -94,22 +91,24 @@ class Game
       puts "Incorrect guess remains: #{@attempts}"
       puts "Your guesses: #{@guesses}"
       puts "Your progress: #{@guess_demonstrate}"
-      if check_win(@word)
+      if check_win(@guess_demonstrate)
         puts 'You win!'
         break
       end
     end
-    puts 'You lost!' if check_loose(@word)
+   check_loose(@guess_demonstrate)
     game_restart
   end
 
   def check_win(word)
-    word.split('').all? { |el| el == '+' }
+    word.split('').all? { |el| el != '_' }
   end
 
   def check_loose(word)
-    !word.split('').all? { |el| el == '+' } && word != 'save'
-    puts "The word was #{@original_word}"
+   if word.split('').any? { |el| el == '_' } && word != 'save'
+    puts 'You lost!'
+    puts "The word was #{@word}"
+   end
   end
 
   def game_restart
@@ -145,7 +144,6 @@ class Game
     @guess_demonstrate = deserialized.guess_demonstrate
     @attempts = deserialized.attempts
     @guesses = deserialized.guesses
-    @original_word = deserialized.word
     play
   end
 end
