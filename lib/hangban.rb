@@ -1,5 +1,22 @@
 require 'colorize'
-class Game
+require 'json'
+
+class JSONable
+def to_json
+  hash = {}
+  self.instance_variables.each do |var|
+  hash[var] = self.instance_variable_get(var)
+  end
+  hash.to_json
+end
+def from_json!(string)
+  JSON.load(string) do |var, val|
+    self.instance_variable_set(var,val)
+  end
+ end
+end
+
+class Game < JSONable
   attr_accessor :word, :guess_demonstrate, :attempts, :guesses
 
   def initialize
@@ -66,6 +83,7 @@ class Game
     puts "Your progress: #{@guess_demonstrate}"
     puts @word
     while @attempts != 0
+      puts 'Type "save" if you want to save the game'
       is_guessed = false
       input = get_guess
       if input == 'save'
@@ -120,7 +138,7 @@ class Game
   def save_game
     puts 'Please, enter a name for the save game'
     input = gets.chomp
-    serialize = Marshal.dump(self)
+    serialize = self.to_json
     game_file = File.new("../saved_games/#{input}", 'w')
     game_file = File.open("../saved_games/#{input}", 'w')
     game_file.write(serialize)
@@ -138,12 +156,12 @@ class Game
       input = gets.chomp
     end
     game_file = File.open("../saved_games/#{input}")
-    deserialized = Marshal.load(game_file)
+    deserialized = self.from_json!(game_file)
     game_file.close
-    @word = deserialized.word
-    @guess_demonstrate = deserialized.guess_demonstrate
-    @attempts = deserialized.attempts
-    @guesses = deserialized.guesses
+    @word = deserialized['@word']
+    @guess_demonstrate = deserialized['@guess_demonstrate']
+    @attempts = deserialized['@attempts']
+    @guesses = deserialized['@guesses']
     play
   end
 end
